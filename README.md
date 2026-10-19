@@ -121,17 +121,32 @@ Mỗi đơn vị đáp án chỉ được tính ở lần trúng đầu tiên, n
 
 ## Kết quả
 
-Mỗi lần chạy tạo thư mục `artifacts/runs/<H>/<UTC-timestamp>-<id>/`:
+```
+artifacts/
+├── reports/
+│   ├── summary.csv          # mỗi giả thuyết một dòng (lần chạy mới nhất)
+│   └── vs_baseline.csv      # mỗi giả thuyết trừ baseline của nó
+└── runs/<H>/<run_id>/       # mỗi lần chạy một thư mục, run_id = thời gian UTC + mã ngắn
+    ├── config.yaml          # config đầy đủ đã chạy (sau khi gộp extends)
+    ├── summary.json         # kết quả + thông tin lần chạy
+    └── per_query.jsonl      # kết quả từng câu hỏi
+```
 
-| File | Nội dung |
+**Muốn so sánh nhanh:** mở `reports/summary.csv` và `reports/vs_baseline.csv`. Hai file chỉ lấy chỉ số chính (`recall`, `mrr`, `ndcg` @10, cả cấp chặt lẫn cấp Điều) cùng thời gian chạy.
+
+| File | Cột / trường chính |
 |---|---|
-| `resolved_config.yaml` | Config đầy đủ sau khi gộp chuỗi `extends` |
-| `run_metadata.json` | Python, phiên bản thư viện, git commit, commit model, biến đã đổi so với baseline |
-| `per_query.jsonl` | Từng câu hỏi: kết quả top-k, điểm, chỉ số, thời gian |
-| `metrics.json` | Chỉ số trung bình |
-| `run_summary.json` | Tổng hợp: chỉ số, thời gian dựng chỉ mục, độ trễ mỗi câu (mean/p95), đỉnh RAM/VRAM |
+| `summary.csv` | `hypothesis`, `baseline`, 6 chỉ số chính, `queries`, `records`, `query_mean_ms`, `index_seconds`, `peak_gpu_gb`, `run_id` |
+| `vs_baseline.csv` | `hypothesis`, `baseline`, `changed` (biến đã đổi), `Δ <chỉ số>` = giả thuyết − baseline (dương là tốt hơn; riêng `Δ query_mean_ms` dương là chậm hơn) |
+| `summary.json` | `hypothesis`, `baseline`, `changed`, `metrics` (bảng đủ: `strict`/`article` → chỉ số → `@k`), `timing` (dựng chỉ mục, ms mỗi câu), `resources` (đỉnh RAM/VRAM theo GB), `environment` (seed, phiên bản thư viện, commit model, git) |
+| `per_query.jsonl` | Mỗi dòng một câu hỏi: `first_hit_rank` (hạng của kết quả đúng đầu tiên, `strict`/`article`), `metrics` (6 chỉ số chính), `latency_ms`, `results` (mỗi kết quả: `rank`, `record_id`, `score`, `hit`, `article_hit`, `snippet` 160 ký tự) |
 
-`compare_experiments()` gom mọi lần chạy vào `artifacts/reports/experiment_comparison.csv`. Cột `baseline_id` cho biết mỗi giả thuyết được so với giả thuyết nào; mục 7 của notebook in chênh lệch, ví dụ `H4 vs H3: mrr@10 +0.4000`.
+Chỉ số chính được đặt ở đầu mục 1.17 của notebook (`HEADLINE_K = 10`, `HEADLINE_METRICS`). Lần chạy cũ không bị ghi đè: `summary.csv` lấy lần mới nhất của mỗi giả thuyết, còn `compare_experiments(latest_only=False)` liệt kê tất cả.
+
+Trong notebook (mục 7):
+- `compare_experiments()` ghi và hiển thị hai bảng trên.
+- `compare_queries("H3", "H4")` in hạng kết quả đúng đầu tiên của từng câu hỏi ở hai giả thuyết, để xem câu nào tốt lên hoặc kém đi.
+- `show_metrics(run_dir)` in bảng chỉ số đầy đủ của một lần chạy.
 
 ## Các mục trong notebook
 
@@ -144,7 +159,7 @@ Mỗi lần chạy tạo thư mục `artifacts/runs/<H>/<UTC-timestamp>-<id>/`:
 | 4 | Thử một câu hỏi (không ghi file) | vài giây |
 | 5 | Chạy một giả thuyết + xem từng câu hỏi | tùy giả thuyết |
 | 6 | Chạy cả bộ H1–H11 | khoảng 30 phút nếu `RUN_DENSE=True` |
-| 7 | Bảng so sánh + chênh lệch so với baseline | vài giây |
+| 7 | `summary.csv`, `vs_baseline.csv`, so sánh từng câu hỏi giữa hai giả thuyết | vài giây |
 
 Chỉ muốn xem kết quả đã có: chạy mục 0–1 rồi nhảy xuống mục 7. Muốn chạy một giả thuyết: đổi `"H1"` ở mục 5 thành ID cần chạy.
 
@@ -197,4 +212,4 @@ Thư mục `configs/` được chép từ Workstream B rồi chỉnh lại:
 - **H7–H9 tắt lọc thời gian.** H7 cũ đổi cùng lúc cách cắt văn bản và lọc thời gian, nên không tách được tác dụng của từng biến. Thêm **H10** (H1 + lọc thời gian) và **H11** (H9 + lọc thời gian, tức H9 cũ).
 - Thêm `corpus.duplicate_unit_id_policy`, `evaluation.also_match_by: [article]`; đổi `indexing.dense.batch_size` thành 2 và reranker của H4 chạy trên CPU.
 
-Notebook cũng có thay đổi tương ứng: xử lý trùng trong `load_enriched_units`, chấm điểm cấp Điều trong `evaluation`, và cột `baseline_id` cùng bảng chênh lệch trong `compare_experiments`.
+Notebook cũng có thay đổi tương ứng: xử lý trùng trong `load_enriched_units`, chấm điểm cấp Điều trong `evaluation`, và định dạng kết quả gọn hơn. Mỗi lần chạy ghi 3 file thay vì 5; `per_query.jsonl` không còn lưu toàn văn và metadata của từng kết quả. Phần tổng hợp gồm `summary.csv` + `vs_baseline.csv`, thay cho `experiment_comparison.csv` 80 cột.
