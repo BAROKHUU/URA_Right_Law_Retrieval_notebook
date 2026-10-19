@@ -183,19 +183,6 @@ fusion:
   dense_weight: 0.8
 ```
 
-## Phần cứng và thời gian (đã thử trên RTX 3050 Laptop 4 GB, 22 GB RAM)
-
-| Giả thuyết | Dựng chỉ mục | Mỗi câu hỏi | Ghi chú |
-|---|---|---|---|
-| H1, H6–H11 (BM25) | 1–3 s | khoảng 10 ms | Không cần GPU |
-| H2, H3, H5 (dense) | khoảng 7 phút | 25–55 ms | Đỉnh VRAM khoảng 2,4 GB |
-| H4 (+ reranker) | khoảng 7 phút | **khoảng 160 s** | Reranker chạy trên CPU |
-
-- `indexing.dense.batch_size: 2`: dùng 8 sẽ hết VRAM trên GPU 4 GB, vì một số bản ghi dài khoảng 3k token. Giá trị này không ảnh hưởng kết quả. Có GPU lớn hơn thì tăng lên để nhanh hơn, nhưng phải sửa ở `base.yaml` và cả H1–H6 để các config vẫn chỉ khác nhau ở đúng biến đã khai báo.
-- Reranker của H4 đặt `device: cpu`, vì bge-m3 và reranker không vừa cùng lúc trong 4 GB. GPU ≥ 8 GB thì đổi thành `auto`.
-- Chỉ mục chỉ nằm trong RAM: khởi động lại kernel thì giả thuyết dense phải mã hóa lại. Các giả thuyết có cùng chữ ký chỉ mục sẽ dùng chung chỉ mục trong cùng một phiên.
-- Dense dùng FAISS `FlatIP` (tìm chính xác). Ở khoảng 10k bản ghi, mỗi lần tìm chỉ mất khoảng 2 ms. `NumpyFlatIndex` là backend dự phòng khi không cài được FAISS.
-
 ## Hạn chế hiện tại
 
 - **Benchmark mới có 1 câu hỏi mẫu.** Các số liệu hiện tại chỉ xác nhận pipeline chạy đúng, chưa đủ để kết luận giả thuyết nào tốt hơn. Cần bộ câu hỏi của Workstream C, nên chia tập dev/test.
