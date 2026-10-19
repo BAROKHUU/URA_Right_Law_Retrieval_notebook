@@ -1,0 +1,15 @@
+extends: h1_sparse_hierarchical.yaml
+
+# Only the representation changes vs H1. The original H7 also switched on temporal
+# filtering, which made the two effects impossible to separate (see H10/H11).
+hypothesis:
+  id: H7
+  description: "Independent Clause/Point children (no Article records) vs H1 hierarchical units, same BM25."
+  variables:
+    - representation.mode
+
+indexing:
+  output_dir: artifacts/indexes/h7_child
+
+representation:
+  mode: parent_child

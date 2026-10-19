@@ -1,0 +1,15 @@
+extends: h9_parent_to_child.yaml
+
+# Same treatment as the original H9: parent -> child retrieval with temporal
+# pre-filtering, now measured against H9 so only temporal.enabled differs.
+hypothesis:
+  id: H11
+  description: "Parent -> child retrieval (H9) with temporal pre-filtering vs H9 without it."
+  variables:
+    - temporal.enabled
+
+indexing:
+  output_dir: artifacts/indexes/h11_parent_to_child_temporal
+
+temporal:
+  enabled: true

@@ -1,0 +1,19 @@
+extends: h8_contextual_child.yaml
+
+hypothesis:
+  id: H9
+  description: "Retrieve Articles first, then rank contextual children within selected Articles, vs flat contextual children (H8)."
+  variables:
+    - representation.parent_child.include_parent_records
+    - retrieval.parent_child.enabled
+
+indexing:
+  output_dir: artifacts/indexes/h9_parent_to_child
+
+representation:
+  parent_child:
+    include_parent_records: true
+
+retrieval:
+  parent_child:
+    enabled: true

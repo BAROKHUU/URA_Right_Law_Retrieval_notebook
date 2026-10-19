@@ -1,0 +1,10 @@
+# BM25-only: H1 baseline, the parent/child chain (H7-H9) and the temporal
+# ablations (H10 on H1, H11 on H9).
+continue_on_error: false
+configs:
+  - ../examples/h1_sparse_hierarchical.yaml
+  - ../examples/h7_child.yaml
+  - ../examples/h8_contextual_child.yaml
+  - ../examples/h9_parent_to_child.yaml
+  - ../examples/h10_temporal_hierarchical.yaml
+  - ../examples/h11_parent_to_child_temporal.yaml

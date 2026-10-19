@@ -1,0 +1,15 @@
+extends: h1_sparse_hierarchical.yaml
+
+# Temporal-only ablation: isolates the effect of validity-interval pre-filtering
+# on the H1 baseline.
+hypothesis:
+  id: H10
+  description: "H1 hierarchical units + BM25 with temporal pre-filtering vs H1 without it."
+  variables:
+    - temporal.enabled
+
+indexing:
+  output_dir: artifacts/indexes/h10_temporal_hierarchical
+
+temporal:
+  enabled: true
